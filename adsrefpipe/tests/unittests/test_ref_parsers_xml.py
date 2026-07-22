@@ -120,7 +120,9 @@ class TestXmlString(unittest.TestCase):
 
     @patch("xml.dom.minidom.parseString")
     def test_init_exception(self, mock_parse_string):
-        """ test initialization when there is an exception """
+        """ test initialization when the tag-removal recovery cannot locate the offending tag:
+        it should fall back to the text-extraction path (rather than returning with the object
+        left without a childNodes attribute) """
 
         # simulate ExpatError only on the first call with a properly formatted error message
         parse_attempts = []
@@ -134,8 +136,11 @@ class TestXmlString(unittest.TestCase):
         # create XmlString instance with invalid XML to trigger exception
         xml_string = XmlString(buffer="InvalidTag<no-match-here>ValidContent")
 
-        self.assertEqual(len(parse_attempts), 1)
+        # first attempt fails, second attempt is the text-extraction fallback
+        self.assertEqual(len(parse_attempts), 2)
         self.assertIn("ValidContent", parse_attempts[-1])
+        # the object must end up fully initialized, ie always have a childNodes attribute
+        self.assertTrue(hasattr(xml_string, 'childNodes'))
 
 
 class TestAASreference(unittest.TestCase):
