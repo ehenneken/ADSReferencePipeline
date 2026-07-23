@@ -121,7 +121,12 @@ class XmlString(XmlList):
                             buffer = buffer.replace(remove_text,'')
                     continue
                 except AttributeError:
-                    return
+                    # unable to locate the offending tag (eg an expat error whose reported
+                    # position does not correspond to a tag boundary, such as "unbound prefix");
+                    # give up on the extraction and fall through to the text fallback below,
+                    # rather than returning here, which would leave this object without
+                    # ever calling XmlList.__init__, and hence without a childNodes attribute
+                    break
 
         # no success, so turn xml into text, remove < and > if any, and then put one tag around it
         # to be able to extract it as text from this structure

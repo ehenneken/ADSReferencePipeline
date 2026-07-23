@@ -308,12 +308,18 @@ class JATStoREFs(XMLtoREFs):
         (re.compile(r'<disp-formula>.*?</disp-formula>'), ''),
         # (re.compile(r'<\w*\:?math>.*?</\w*\:?math>'), ''),
         (re.compile(r'ext-link.*href='), 'ext-link href='),
-        (re.compile(r'\s+xlink:href='), ' href=')
+        (re.compile(r'\s+xlink:href='), ' href='),
+        # strip any other xlink:-prefixed attribute (eg xlink:type) since the xlink namespace is
+        # never declared once a reference is extracted and parsed as a standalone XML snippet,
+        # which makes expat raise an "unbound prefix" error
+        (re.compile(r'\s+xlink:\w+="[^"]*"'), '')
     ]
     # to clean up references by replacing certain patterns
     reference_cleanup = [
         (re.compile(r'</?uri.*?>'), ''),
         (re.compile(r'\s+xlink:href='), ' href='),
+        # strip any other xlink:-prefixed attribute (eg xlink:type), see block_cleanup above
+        (re.compile(r'\s+xlink:\w+="[^"]*"'), ''),
         (re.compile(r'\(<comment>.*?</comment>\)'), ''),
         (re.compile(r'<inline-formula[\w\s="\']*>.*?</inline-formula>', re.DOTALL), ''),
         (re.compile(r'<label>.*?</label>'), ''),
